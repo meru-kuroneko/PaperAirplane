@@ -1,15 +1,10 @@
-%h1 アカウントの追加
-- @tests.each do | label |
-  = label
-
 - if flash[:notice]
   %p= flash[:notice]
--if session[:nickname]
-  %p= "#{session[:nickname]}さん、こんにちは"
--if session[:user_ids]
-  %p= "#{session[:user_ids]}"
+-if session[:user_info]
+  - session[:user_info].each do |user_info|
+    = image_tag user_info["profile_image_url"], size: "80x80" , id:user_info["id"]
 
-= form_with model: @account, url: home_add_account_path, local: true do |f|
+= form_with url: home_add_account_path, local: true do |f|
   = f.radio_button :type, "twitter", id:"type_twitter" , checked: true
   = f.label "twitter", for:"type_twitter"
 
