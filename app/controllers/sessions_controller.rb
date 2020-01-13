@@ -1,48 +1,32 @@
 class SessionsController < ApplicationController
   def create
     user_data = request.env['omniauth.auth']
-    add_user_ids(user_data[:uid])
-    add_user_info(user_data[:extra][:raw_info])
+    add_user_info(user_data[:uid], user_data[:info])
     add_credentials(user_data[:uid], user_data[:credentials])
     redirect_to root_path, notice: 'ログインしました'
   end
 
   private
 
-  def add_user_ids(uid)
-    ids = session[:user_ids]
-    if ids.nil?
-      ids = []
+  def add_user_info(uid, user_info)
+    if session[:user_info].nil?
+      session[:user_info] = []
+      session[:user_info].push({uid: uid, info: user_info})
+      return
     end
-    if ids.exclude?(uid)
-      ids.push(uid)
-    end
-    session[:user_info] = ids
-  end
 
-  def add_user_info(user_info)
-    info = session[:user_info]
-    if info.nil?
-      info = []
+    if session[:user_info].none? { |item| item["uid"] == uid }
+      session[:user_info].push({uid: uid, info: user_info})
+    else
+      session[:user_info].each { |item|
+        if item["uid"] == uid
+          item[:info] = user_info
+        end }
     end
-    if info.exclude?(user_info)
-      info.push(user_info)
-    end
-    session[:user_info] = info
   end
 
   def add_credentials(uid, credentials)
-    cookie = cookies[:credentials]
-    val = {"token" => credentials[:token], "secret" => credentials[:secret]}
-    json_item = JSON.generate({uid => {"token" => credentials[:token], "secret" => credentials[:secret]}})
-
-    if cookie.nil?
-      cookie = {value: json_item, secure: true, httpOnly: true}
-    elsif cookie[uid].nil?
-      cookie[uid] = val
-    else
-      cookie.store(uid, val)
-    end
-    cookies[:credentials] = cookie
+    json_item = {"token" => credentials[:token], "secret" => credentials[:secret]}.to_json
+    cookies[uid] = {value: json_item, secure: true, httpOnly: true}
   end
 end

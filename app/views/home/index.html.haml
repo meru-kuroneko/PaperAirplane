@@ -2,7 +2,7 @@
   %p= flash[:notice]
 -if session[:user_info]
   - session[:user_info].each do |user_info|
-    = image_tag user_info["profile_image_url"], size: "80x80" , id:user_info["id"]
+    = image_tag user_info["info"]["image"], size: "40x40" , id:user_info["UID"]
 
 = form_with url: home_add_account_path, local: true do |f|
   = f.radio_button :type, "twitter", id:"type_twitter" , checked: true
